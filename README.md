@@ -1,5 +1,7 @@
 # NutriMama AI — Agentic AI Pregnancy Nutrition Assistant
 
+🔗 [github.com/Priyal-Dargan/NutriMama-AI-Project](https://github.com/Priyal-Dargan/NutriMama-AI-Project)
+
 > Educational/portfolio project. Not a substitute for professional medical advice.
 > Every AI-generated recommendation must display:
 > *"This assistant provides educational information only and is not a substitute for
@@ -404,18 +406,21 @@ illustrations), and final documentation. The application is fully functional
 end-to-end locally already — Phase 5 is about making it deployable, not making
 it work.
 
-## Before Pushing to GitHub
+## Repo Hygiene (for contributors)
 
-- [ ] Confirm `.env` is **not** tracked (`git status` should not show it) —
-      `.gitignore` already excludes it, along with `*.db`, `uploads/*`, and
-      `rag/chroma_store/`
-- [ ] Rotate any API key that was ever pasted into a chat, ticket, or shared
-      screen, even a "local-only" one — generate a fresh `GEMINI_API_KEY` /
-      `OPENAI_API_KEY` and set a real `JWT_SECRET_KEY` (see Setup above)
-- [ ] Double check `requirements.txt` vs `requirements_backup.txt` aren't both
-      needed — keep one source of truth and delete the other before publishing
-- [ ] Run `pip freeze > requirements.txt` from a clean venv install if you want
-      the file to reflect exactly what's installed
+Guidelines for anyone committing to this repo going forward:
+- Never commit `.env` — only `.env.example` (with placeholder values) belongs
+  in version control. `.gitignore` already excludes `.env`, `*.db`,
+  `**/uploads/*`, and `**/rag/chroma_store/`.
+- If an API key is ever pasted into a chat, ticket, screen share, or committed
+  by accident, treat it as compromised — rotate it immediately (regenerate
+  `GEMINI_API_KEY` / `OPENAI_API_KEY`, set a fresh `JWT_SECRET_KEY`) rather
+  than assuming it's fine because it was "just local."
+- Don't leave `_backup` copies of files in the repo (e.g. `foo_backup.py`) —
+  git history is the backup. Delete the old version once the new one works.
+- Before a big commit, run `git status` and sanity-check the file list —
+  it's the fastest way to catch a generated file (db, chroma index, upload)
+  that slipped past `.gitignore`.
 
 ## Contributing
 
@@ -423,13 +428,14 @@ This is a team project built in phases (see Build Status above). If you're
 picking up a piece:
 1. Clone the repo, then follow **Setup** above — each teammate needs their own
    local `venv` and `.env` (never share `.env` itself, only `.env.example`)
+```bash
+   git clone https://github.com/Priyal-Dargan/NutriMama-AI-Project.git
+```
 2. Check the phase table to see what's done vs. in progress before changing
    shared files like `app.py`, `config.py`, or `database.py`
 3. Run the existing tests in `backend/tests/` before opening a PR
 
 ## License
 
-No license file is currently included. Until one is added, all rights are
-reserved by the project authors — add an `LICENSE` file (MIT is a common,
-permissive choice for portfolio/educational projects like this) before
-treating the repo as open source.
+No license file is included. All rights are reserved by the project authors —
+this code may not be copied, modified, or redistributed without permission.

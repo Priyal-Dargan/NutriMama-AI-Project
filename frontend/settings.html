@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .settings-section { margin-bottom: var(--space-6); }
+  .check-chip { display:flex; align-items:center; gap:.6rem; padding:.6rem .9rem; border:1.5px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:var(--text-sm); }
+  .check-chip input { accent-color: var(--color-primary); width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+function parseList(id) {
+  const val = document.getElementById(id).value.trim();
+  return val ? val.split(',').map(s => s.trim()).filter(Boolean) : null;
+}
+function listToStr(list) { return (list || []).join(', '); }
+
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `<h1 style="font-size:var(--text-2xl);">Settings</h1>${skeletonBlock('400px')}`;
+
+  let profile;
+  try {
+    profile = await Api.getProfile();
+  } catch (err) {
+    main.innerHTML += `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+    return;
+  }
+  const p = profile.pregnancy || {};
+  const m = profile.medical || {};
+  const d = profile.diet || {};
+
+  main.innerHTML = `
+    <h1 style="font-size:var(--text-2xl);">Settings</h1>
+
+    <div class="settings-section card-soft">
+      <h3>Pregnancy Profile</h3>
+      <form id="pregnancy-form">
+        <div class="row g-3">
+          <div class="col-md-3"><label class="form-label">Age</label><input type="number" class="form-control" id="age" value="${p.age ?? ''}" required></div>
+          <div class="col-md-3"><label class="form-label">Height (cm)</label><input type="number" class="form-control" id="height_cm" value="${p.height_cm ?? ''}" required></div>
+          <div class="col-md-3"><label class="form-label">Current weight (kg)</label><input type="number" step="0.1" class="form-control" id="current_weight_kg" value="${p.current_weight_kg ?? ''}" required></div>
+          <div class="col-md-3"><label class="form-label">Pre-pregnancy weight (kg)</label><input type="number" step="0.1" class="form-control" id="pre_pregnancy_weight_kg" value="${p.pre_pregnancy_weight_kg ?? ''}"></div>
+          <div class="col-md-4"><label class="form-label">Due date</label><input type="date" class="form-control" id="due_date" value="${p.due_date ?? ''}"></div>
+          <div class="col-md-4">
+            <label class="form-label">Pregnancy type</label>
+            <select class="form-select" id="pregnancy_type">
+              <option value="singleton" ${p.pregnancy_type==='singleton'?'selected':''}>Singleton</option>
+              <option value="twins" ${p.pregnancy_type==='twins'?'selected':''}>Twins</option>
+              <option value="triplets" ${p.pregnancy_type==='triplets'?'selected':''}>Triplets</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Activity level</label>
+            <select class="form-select" id="activity_level">
+              <option value="sedentary" ${p.activity_level==='sedentary'?'selected':''}>Sedentary</option>
+              <option value="light" ${p.activity_level==='light'?'selected':''}>Light</option>
+              <option value="moderate" ${p.activity_level==='moderate'?'selected':''}>Moderate</option>
+              <option value="active" ${p.activity_level==='active'?'selected':''}>Active</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-brand mt-3">Save Pregnancy Profile</button>
+      </form>
+    </div>
+
+    <div class="settings-section card-soft">
+      <h3>Medical History</h3>
+      <form id="medical-form">
+        <div class="row g-2 mb-3">
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="diabetes" ${m.diabetes?'checked':''}> Diabetes</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="gestational_diabetes" ${m.gestational_diabetes?'checked':''}> Gestational diabetes</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="hypertension" ${m.hypertension?'checked':''}> Hypertension</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="pcos" ${m.pcos?'checked':''}> PCOS</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="thyroid" ${m.thyroid?'checked':''}> Thyroid</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="anemia" ${m.anemia?'checked':''}> Anemia</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="lactose_intolerance" ${m.lactose_intolerance?'checked':''}> Lactose intolerance</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="gluten_intolerance" ${m.gluten_intolerance?'checked':''}> Gluten intolerance</label></div>
+        </div>
+        <label class="form-label">Allergies (comma-separated)</label>
+        <input type="text" class="form-control" id="allergies" value="${escapeHtml(listToStr(m.allergies))}">
+        <button type="submit" class="btn btn-brand mt-3">Save Medical History</button>
+      </form>
+    </div>
+
+    <div class="settings-section card-soft">
+      <h3>Diet Preferences</h3>
+      <form id="diet-form">
+        <div class="row g-2 mb-3">
+          <div class="col-md-2"><label class="check-chip"><input type="checkbox" id="vegetarian" ${d.vegetarian?'checked':''}> Vegetarian</label></div>
+          <div class="col-md-2"><label class="check-chip"><input type="checkbox" id="vegan" ${d.vegan?'checked':''}> Vegan</label></div>
+          <div class="col-md-2"><label class="check-chip"><input type="checkbox" id="jain" ${d.jain?'checked':''}> Jain</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="eggetarian" ${d.eggetarian?'checked':''}> Eggetarian</label></div>
+          <div class="col-md-3"><label class="check-chip"><input type="checkbox" id="non_vegetarian" ${d.non_vegetarian?'checked':''}> Non-vegetarian</label></div>
+        </div>
+        <div class="row g-3 mb-2">
+          <div class="col-md-6"><label class="form-label">Cuisine</label><input type="text" class="form-control" id="cuisine" value="${escapeHtml(d.cuisine || '')}"></div>
+          <div class="col-md-6">
+            <label class="form-label">Budget</label>
+            <select class="form-select" id="budget">
+              <option value="low" ${d.budget==='low'?'selected':''}>Low</option>
+              <option value="medium" ${d.budget==='medium'?'selected':''}>Medium</option>
+              <option value="high" ${d.budget==='high'?'selected':''}>High</option>
+            </select>
+          </div>
+        </div>
+        <label class="form-label">Favorite foods</label>
+        <input type="text" class="form-control mb-2" id="favorite_foods" value="${escapeHtml(listToStr(d.favorite_foods))}">
+        <label class="form-label">Disliked foods</label>
+        <input type="text" class="form-control mb-2" id="disliked_foods" value="${escapeHtml(listToStr(d.disliked_foods))}">
+        <label class="form-label">Available ingredients</label>
+        <input type="text" class="form-control" id="available_ingredients" value="${escapeHtml(listToStr(d.available_ingredients))}">
+        <button type="submit" class="btn btn-brand mt-3">Save Diet Preferences</button>
+      </form>
+    </div>
+
+    <div class="settings-section card-soft">
+      <h3>Send Feedback</h3>
+      <p class="text-faint" style="font-size:var(--text-sm);">Feedback storage endpoint isn't wired up yet in this build — this form is a placeholder for a future release.</p>
+      <textarea class="form-control mb-2" rows="3" placeholder="Tell us what's working or what could be better…" disabled></textarea>
+      <button class="btn btn-brand-outline" disabled>Send Feedback (coming soon)</button>
+    </div>
+  `;
+
+  document.getElementById('pregnancy-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await Api.updatePregnancyProfile({
+        age: Number(document.getElementById('age').value),
+        height_cm: Number(document.getElementById('height_cm').value),
+        current_weight_kg: Number(document.getElementById('current_weight_kg').value),
+        pre_pregnancy_weight_kg: document.getElementById('pre_pregnancy_weight_kg').value ? Number(document.getElementById('pre_pregnancy_weight_kg').value) : null,
+        due_date: document.getElementById('due_date').value || null,
+        pregnancy_type: document.getElementById('pregnancy_type').value,
+        activity_level: document.getElementById('activity_level').value,
+      });
+      toast('Pregnancy profile saved!', 'success');
+    } catch (err) { toast(err.message || 'Failed to save.', 'error'); }
+  });
+
+  document.getElementById('medical-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await Api.updateMedicalHistory({
+        diabetes: document.getElementById('diabetes').checked,
+        gestational_diabetes: document.getElementById('gestational_diabetes').checked,
+        hypertension: document.getElementById('hypertension').checked,
+        pcos: document.getElementById('pcos').checked,
+        thyroid: document.getElementById('thyroid').checked,
+        anemia: document.getElementById('anemia').checked,
+        lactose_intolerance: document.getElementById('lactose_intolerance').checked,
+        gluten_intolerance: document.getElementById('gluten_intolerance').checked,
+        allergies: parseList('allergies'),
+        other_conditions: null,
+      });
+      toast('Medical history saved!', 'success');
+    } catch (err) { toast(err.message || 'Failed to save.', 'error'); }
+  });
+
+  document.getElementById('diet-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await Api.updateDietPreferences({
+        vegetarian: document.getElementById('vegetarian').checked,
+        vegan: document.getElementById('vegan').checked,
+        jain: document.getElementById('jain').checked,
+        eggetarian: document.getElementById('eggetarian').checked,
+        non_vegetarian: document.getElementById('non_vegetarian').checked,
+        cuisine: document.getElementById('cuisine').value.trim() || null,
+        budget: document.getElementById('budget').value,
+        favorite_foods: parseList('favorite_foods'),
+        disliked_foods: parseList('disliked_foods'),
+        available_ingredients: parseList('available_ingredients'),
+      });
+      toast('Diet preferences saved!', 'success');
+    } catch (err) { toast(err.message || 'Failed to save.', 'error'); }
+  });
+}
+NutriMamaNav.mount('settings').then(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Planner — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .meal-card { background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding: var(--space-4); height:100%; }
+  .meal-slot-label { font-size:var(--text-xs); text-transform:uppercase; letter-spacing:.05em; font-weight:700; color:var(--color-primary-dark); }
+  .history-item { border-bottom:1px solid var(--color-border); padding: var(--space-3) 0; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+const MEAL_SLOTS = [
+  ['breakfast', 'Breakfast'], ['morning_snack', 'Morning Snack'], ['lunch', 'Lunch'],
+  ['evening_snack', 'Evening Snack'], ['dinner', 'Dinner'], ['bedtime_snack', 'Bedtime Snack'],
+];
+
+function renderMealCard([key, label], meal) {
+  if (!meal) return '';
+  return `
+    <div class="col-md-4">
+      <div class="meal-card">
+        <div class="meal-slot-label">${label}</div>
+        <h3 style="font-size:var(--text-lg);">${escapeHtml(meal.name)}</h3>
+        <p class="mb-1" style="font-size:var(--text-sm);">${meal.calories} kcal · ${meal.protein_g}g protein</p>
+        <p class="text-faint mb-2" style="font-size:var(--text-sm);">${escapeHtml((meal.ingredients || []).join(', '))}</p>
+        <p class="text-faint mb-2" style="font-size:var(--text-xs);">⏱ ${meal.prep_time_minutes} min · 💰 ${escapeHtml(meal.estimated_cost || '')}</p>
+        ${meal.why_recommended ? `<p class="mb-0" style="font-size:var(--text-xs); font-style:italic;">Why: ${escapeHtml(meal.why_recommended)}</p>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderFoodList(title, items) {
+  if (!items || !items.length) return '';
+  return `
+    <div class="col-md-6 col-lg-4">
+      <div class="card-soft h-100">
+        <h4 style="font-size:var(--text-md); margin-bottom:6px;">${title}</h4>
+        <p class="mb-0" style="font-size:var(--text-sm);">${items.map(escapeHtml).join(', ')}</p>
+      </div>
+    </div>`;
+}
+
+function renderGoals(plan) {
+  const goals = [
+    plan.calories_target ? `${plan.calories_target} kcal/day` : null,
+    plan.protein_goal_g ? `${plan.protein_goal_g}g protein/day` : null,
+    plan.hydration_goal_ml ? `${plan.hydration_goal_ml}ml water/day` : null,
+  ].filter(Boolean);
+  if (!goals.length) return '';
+  return `
+    <div class="card-soft mb-3">
+      <h3 style="font-size:var(--text-lg);">🎯 Today's Targets</h3>
+      <p class="mb-0">${goals.map(escapeHtml).join(' · ')}</p>
+    </div>`;
+}
+
+function renderPlan(plan) {
+  const cards = MEAL_SLOTS.map(slot => renderMealCard(slot, plan[slot[0]])).join('');
+  const foodLists = [
+    renderFoodList('🩸 Iron-rich foods', plan.iron_rich_foods),
+    renderFoodList('🦴 Calcium-rich foods', plan.calcium_rich_foods),
+    renderFoodList('🌿 Folic acid sources', plan.folic_acid_sources),
+    renderFoodList('🌾 Fiber sources', plan.fiber_sources),
+    renderFoodList('🔄 Healthy alternatives', plan.healthy_alternatives),
+    renderFoodList('🚫 Foods to avoid', plan.foods_to_avoid),
+  ].join('');
+
+  return `
+    ${renderGoals(plan)}
+    <div class="row g-3 mb-3">${cards}</div>
+    ${foodLists ? `<div class="row g-3 mb-3">${foodLists}</div>` : ''}
+    ${plan.deficiencies_addressed?.length ? `
+      <div class="card-soft mb-3">
+        <h3 style="font-size:var(--text-lg);">🔍 Addressing your recent blood work</h3>
+        <p class="mb-0">${plan.deficiencies_addressed.map(d => escapeHtml(d.replace(/_/g, ' '))).join(', ')}</p>
+      </div>` : ''}
+    ${plan.shopping_list?.length ? `
+      <div class="card-soft mb-3">
+        <h3 style="font-size:var(--text-lg);">🛒 Shopping List</h3>
+        <p class="mb-0">${plan.shopping_list.map(escapeHtml).join(', ')}</p>
+      </div>` : ''}
+    ${plan.ai_notes ? `
+      <div class="card-soft" style="background:var(--color-secondary-light); border:none;">
+        <strong>Why this plan:</strong> ${escapeHtml(plan.ai_notes)}
+      </div>` : ''}
+  `;
+}
+
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+      <h1 style="font-size:var(--text-2xl); margin-bottom:0;">Meal Planner</h1>
+      <button class="btn btn-brand" id="generate-btn">Generate Today's Plan</button>
+    </div>
+    <div id="disclaimer-slot" class="mb-4"></div>
+    <div id="plan-slot">${skeletonBlock('300px')}</div>
+    <h2 class="mt-5 mb-3" style="font-size:var(--text-xl);">History</h2>
+    <div id="history-slot">${skeletonBlock('120px')}</div>
+  `;
+  renderDisclaimer(document.getElementById('disclaimer-slot'));
+
+  async function loadHistory() {
+    const historySlot = document.getElementById('history-slot');
+    try {
+      const history = await Api.getMealPlanHistory();
+      if (!history.length) {
+        historySlot.innerHTML = `<p class="text-faint">No meal plans generated yet.</p>`;
+        return;
+      }
+      historySlot.innerHTML = history.map(p => `
+        <div class="history-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${formatDate(p.generation_date)}</strong>
+            <span class="text-faint" style="font-size:var(--text-sm);"> — ${escapeHtml(p.breakfast?.name || '')}, ${escapeHtml(p.lunch?.name || '')}...</span>
+          </div>
+          <button class="btn btn-sm btn-brand-outline view-plan-btn" data-id="${p.id}">View</button>
+        </div>
+      `).join('');
+      historySlot.querySelectorAll('.view-plan-btn').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          document.getElementById('plan-slot').innerHTML = renderPlan(history[i]);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    } catch (err) {
+      historySlot.innerHTML = `<p class="text-faint">Couldn't load history.</p>`;
+    }
+  }
+
+  document.getElementById('generate-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('generate-btn');
+    const planSlot = document.getElementById('plan-slot');
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+    planSlot.innerHTML = skeletonBlock('300px');
+
+    try {
+      const plan = await Api.generateMealPlan();
+      planSlot.innerHTML = renderPlan(plan);
+      toast('Meal plan generated!', 'success');
+      loadHistory();
+    } catch (err) {
+      planSlot.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Generate Today\'s Plan';
+    }
+  });
+
+  document.getElementById('plan-slot').innerHTML = `<p class="text-faint">Click "Generate Today's Plan" to get a personalized meal plan, or view one from your history below.</p>`;
+  loadHistory();
+}
+NutriMamaNav.mount('mealplanner').then(render);
+</script>
+</body>
+</html>

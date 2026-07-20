@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriMama AI — Agentic AI Pregnancy Nutrition Assistant</title>
+<meta name="description" content="Personalized, evidence-based pregnancy nutrition guidance from a team of specialized AI agents — meal plans, food safety, and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .landing-nav { display:flex; align-items:center; justify-content:space-between; padding: var(--space-5) var(--space-8); }
+  .hero { padding: var(--space-8) var(--space-8) var(--space-10); }
+  .hero-grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-8); align-items:center; max-width:1200px; margin:0 auto; }
+  .eyebrow { display:inline-flex; align-items:center; gap:.5rem; background:var(--color-primary-light); color:var(--color-primary-dark); font-weight:700; font-size:var(--text-xs); text-transform:uppercase; letter-spacing:.06em; padding:.4rem .9rem; border-radius:var(--radius-full); margin-bottom:var(--space-4); }
+  .hero h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); }
+  .hero-visual { display:flex; justify-content:center; }
+  .trimester-path { max-width: 1200px; margin: 0 auto; padding: var(--space-10) var(--space-8); }
+  .trimester-card { background: var(--color-surface); border:1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); height:100%; }
+  .trimester-arc { width:64px; height:64px; margin-bottom: var(--space-4); }
+  .section { max-width:1200px; margin:0 auto; padding: var(--space-10) var(--space-8); }
+  .agent-pill { display:inline-flex; align-items:center; gap:.5rem; background: var(--color-surface); border:1.5px solid var(--color-border); border-radius: var(--radius-full); padding:.55rem 1.1rem; font-weight:600; font-size:var(--text-sm); }
+  .faq-item { border-bottom:1px solid var(--color-border); padding: var(--space-4) 0; }
+  .faq-item summary { cursor:pointer; font-weight:700; font-size: var(--text-lg); list-style:none; }
+  .faq-item summary::-webkit-details-marker { display:none; }
+  footer { background: var(--color-ink); color: #E9E3EC; padding: var(--space-8); }
+  footer a { color: #E9E3EC; opacity:.8; }
+  .testimonial-card { background: var(--color-secondary-light); border-radius: var(--radius-lg); padding: var(--space-6); height: 100%; }
+</style>
+</head>
+<body>
+
+<nav class="landing-nav">
+  <a href="index.html" class="brand" style="margin:0; text-decoration:none;">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="13" stroke="var(--color-border)" stroke-width="3"/>
+      <path d="M16 3 A13 13 0 0 1 27.25 21.5" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M27.25 21.5 A13 13 0 0 1 16 29" stroke="var(--color-secondary)" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <span>NutriMama AI</span>
+  </a>
+  <div class="d-flex gap-2">
+    <a href="login.html" class="btn btn-brand-outline">Login</a>
+    <a href="register.html" class="btn btn-brand">Get Started</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">Agentic AI · Pregnancy Nutrition</span>
+      <h1>Nutrition guidance that grows with every week of your pregnancy.</h1>
+      <p style="font-size: var(--text-lg);">NutriMama AI coordinates a team of specialized AI agents — not one generic
+        chatbot — to give you personalized meal plans, food safety answers, and health insights grounded in your
+        actual profile, trimester, and medical history.</p>
+      <div class="d-flex gap-3 flex-wrap">
+        <a href="register.html" class="btn btn-brand btn-lg">Get Started Free</a>
+        <a href="#how-it-works" class="btn btn-brand-outline btn-lg">See How It Works</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div id="hero-ring"></div>
+    </div>
+  </div>
+</header>
+
+<section class="trimester-path" id="how-it-works">
+  <h2 class="text-center mb-2">Guidance that follows your journey, trimester by trimester</h2>
+  <p class="text-center mb-5" style="max-width:640px; margin-inline:auto;">Nutrient needs, food safety questions, and
+    common concerns genuinely change across pregnancy — so the guidance should too.</p>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="trimester-card">
+        <svg class="trimester-arc" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" stroke="var(--color-border)" stroke-width="6"/><path d="M32 6 a26 26 0 0 1 18 44" stroke="var(--color-primary)" stroke-width="6" stroke-linecap="round"/></svg>
+        <h3>First Trimester</h3>
+        <p>Weeks 1–13. Folate, early hydration, and gentle guidance through the most common early food-safety questions.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="trimester-card">
+        <svg class="trimester-arc" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" stroke="var(--color-border)" stroke-width="6"/><path d="M32 6 a26 26 0 1 1 -14 47" stroke="var(--color-secondary)" stroke-width="6" stroke-linecap="round"/></svg>
+        <h3>Second Trimester</h3>
+        <p>Weeks 14–27. Rising calorie and iron needs, meal optimization around your cuisine and budget, and steady tracking.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="trimester-card">
+        <svg class="trimester-arc" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" stroke="var(--color-border)" stroke-width="6"/><path d="M32 6 a26 26 0 1 1 -0.1 0" stroke="#7CB87F" stroke-width="6" stroke-linecap="round"/></svg>
+        <h3>Third Trimester</h3>
+        <p>Weeks 28–40+. DHA, final weight-gain guidance, and reminders that keep supplements and appointments on track.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="text-center mb-2">A team of AI agents, not one generic chatbot</h2>
+  <p class="text-center mb-5" style="max-width:680px; margin-inline:auto;">Every question you ask is routed by a
+    Supervisor Agent to only the specialists it actually needs — so a food safety question doesn't trigger a full
+    meal plan, and a meal plan request pulls in your medical history automatically.</p>
+  <div class="d-flex flex-wrap gap-3 justify-content-center">
+    <span class="agent-pill">🧭 Supervisor Agent</span>
+    <span class="agent-pill">👤 User Profile Agent</span>
+    <span class="agent-pill">🥗 Nutrition Planner</span>
+    <span class="agent-pill">📚 Medical Guidelines (RAG)</span>
+    <span class="agent-pill">🛡️ Food Safety Agent</span>
+    <span class="agent-pill">🍱 Meal Optimization</span>
+    <span class="agent-pill">⏰ Reminder Agent</span>
+    <span class="agent-pill">📈 Health Monitoring</span>
+  </div>
+</section>
+
+<div class="arc-divider">
+  <svg width="200" height="24" viewBox="0 0 200 24"><path d="M4 4 Q100 28 196 4" stroke="var(--color-border)" stroke-width="2" fill="none"/></svg>
+</div>
+
+<section class="section">
+  <h2 class="text-center mb-5">Why an agentic approach matters</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <h3>🎯 Only what's relevant</h3>
+      <p>Conditional routing means you get focused answers — the Supervisor Agent skips agents that aren't needed for your question.</p>
+    </div>
+    <div class="col-md-4">
+      <h3>📖 Evidence, not guesses</h3>
+      <p>The Medical Guidelines Agent retrieves from an indexed knowledge base before answering, and shows you what it found.</p>
+    </div>
+    <div class="col-md-4">
+      <h3>🔍 Fully transparent</h3>
+      <p>Every response shows which agents ran, their confidence, and an execution timeline — no black box.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="text-center mb-5">What users are saying</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="testimonial-card">
+        <p style="color:var(--color-ink);">"The food safety checker answered questions I felt silly asking my doctor about every little thing."</p>
+        <strong>— Early beta tester</strong>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="testimonial-card">
+        <p style="color:var(--color-ink);">"I liked seeing exactly why a meal plan was suggested instead of just getting a list."</p>
+        <strong>— Early beta tester</strong>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="testimonial-card">
+        <p style="color:var(--color-ink);">"Reminders for my iron supplement actually helped me stay consistent."</p>
+        <strong>— Early beta tester</strong>
+      </div>
+    </div>
+  </div>
+  <p class="text-center text-faint mt-3" style="font-size:var(--text-xs);">Illustrative feedback for demonstration purposes.</p>
+</section>
+
+<section class="section" style="max-width:800px;">
+  <h2 class="text-center mb-5">Frequently Asked Questions</h2>
+  <details class="faq-item" open>
+    <summary>Is this a replacement for my doctor?</summary>
+    <p class="mt-2">No. NutriMama AI provides educational information only. Always consult a qualified healthcare
+      professional before making medical decisions — especially around symptoms, supplements, or existing conditions.</p>
+  </details>
+  <details class="faq-item">
+    <summary>How does the AI decide what to tell me?</summary>
+    <p class="mt-2">A Supervisor Agent routes your question to specialized agents (nutrition, medical guidelines, food
+      safety, etc.), which pull from your profile and, where relevant, a retrieval-based knowledge base — rather than
+      one model guessing at everything.</p>
+  </details>
+  <details class="faq-item">
+    <summary>What happens if I mention a concerning symptom?</summary>
+    <p class="mt-2">Emergency detection runs on every message before anything else. If it looks like you might be
+      describing a medical emergency, you'll be directed to contact your provider or emergency services immediately —
+      no meal plan or nutrition advice will be generated instead.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Is my data private?</summary>
+    <p class="mt-2">Your profile and chat history are tied to your account and protected behind authentication. See
+      our Privacy Policy for details.</p>
+  </details>
+</section>
+
+<section class="section text-center" id="contact">
+  <h2>Ready to get personalized guidance?</h2>
+  <p class="mb-5">Create a free account and complete your pregnancy profile in a few minutes.</p>
+  <a href="register.html" class="btn btn-brand btn-lg">Get Started Free</a>
+</section>
+
+<footer>
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-4" style="max-width:1200px; margin:0 auto;">
+    <div style="max-width:420px;">
+      <div class="brand" style="color:#fff; margin-bottom:var(--space-3);">NutriMama AI</div>
+      <p style="color:#c9c1d1; font-size:var(--text-sm);">This assistant provides educational information only and is
+        not a substitute for professional medical advice. Always consult a qualified healthcare professional before
+        making medical decisions.</p>
+    </div>
+    <div class="d-flex gap-5 flex-wrap">
+      <div>
+        <h4 style="color:#fff; font-size:var(--text-sm);">Product</h4>
+        <div class="d-flex flex-column gap-1">
+          <a href="register.html">Get Started</a>
+          <a href="login.html">Login</a>
+        </div>
+      </div>
+      <div>
+        <h4 style="color:#fff; font-size:var(--text-sm);">Legal</h4>
+        <div class="d-flex flex-column gap-1">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/ui.js"></script>
+<script>
+  document.getElementById('hero-ring').innerHTML = renderGrowingCircle({ week: 24, size: 220, strokeWidth: 16 });
+</script>
+</body>
+</html>

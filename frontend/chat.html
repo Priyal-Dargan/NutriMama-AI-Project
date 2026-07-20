@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .chat-layout { display:flex; flex-direction:column; height: calc(100vh - var(--space-6) * 2); max-width:840px; margin:0 auto; }
+  .chat-scroll { flex:1; overflow-y:auto; padding: var(--space-2) var(--space-1); }
+  .chat-input-row { display:flex; gap:.6rem; padding-top: var(--space-4); border-top:1px solid var(--color-border); }
+  .suggested-prompt { background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-full); padding:.5rem 1rem; font-size:var(--text-sm); font-weight:600; cursor:pointer; }
+  .suggested-prompt:hover { border-color:var(--color-primary); }
+  .typing-indicator span { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--color-ink-faint); margin:0 2px; animation: typing-bounce 1.2s infinite; }
+  .typing-indicator span:nth-child(2) { animation-delay:.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay:.4s; }
+  @keyframes typing-bounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-4px); } }
+  .msg-actions { display:flex; gap:.5rem; margin-top:.4rem; }
+  .msg-actions button { background:none; border:none; color:var(--color-ink-faint); font-size:var(--text-xs); cursor:pointer; padding:0; }
+  .msg-actions button:hover { color:var(--color-ink); }
+  .source-chip { font-size:var(--text-xs); background:var(--color-accent-light); color:#1E7A45; padding:.2em .6em; border-radius:var(--radius-full); font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `
+    <div class="chat-layout">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h1 style="font-size:var(--text-2xl); margin-bottom:0;">AI Chat</h1>
+        <button class="btn btn-sm btn-brand-outline" id="clear-chat-btn">Clear chat</button>
+      </div>
+      <div id="disclaimer-slot" class="mb-3"></div>
+      <div class="chat-scroll" id="chat-scroll">
+        <div class="chat-window" id="chat-window"></div>
+      </div>
+      <div id="suggested-prompts" class="d-flex flex-wrap gap-2 mb-3"></div>
+      <form class="chat-input-row" id="chat-form">
+        <input type="text" class="form-control" id="chat-input" placeholder="Ask about meals, food safety, nutrition…" autocomplete="off" required>
+        <button type="submit" class="btn btn-brand" id="send-btn">Send</button>
+      </form>
+    </div>
+  `;
+  renderDisclaimer(document.getElementById('disclaimer-slot'));
+
+  const chatWindow = document.getElementById('chat-window');
+  const chatScroll = document.getElementById('chat-scroll');
+  const suggestedPrompts = document.getElementById('suggested-prompts');
+
+  const SUGGESTIONS = [
+    'Is coffee safe during pregnancy?',
+    'Give me a meal plan for today',
+    'What should my daily nutrition targets be?',
+    'How is my progress this week?',
+  ];
+  suggestedPrompts.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="suggested-prompt">${escapeHtml(s)}</button>`).join('');
+  suggestedPrompts.querySelectorAll('.suggested-prompt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('chat-input').value = btn.textContent;
+      document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+    });
+  });
+
+  function scrollToBottom() { chatScroll.scrollTop = chatScroll.scrollHeight; }
+
+  function addUserBubble(text) {
+    const div = document.createElement('div');
+    div.className = 'chat-bubble user';
+    div.textContent = text;
+    chatWindow.appendChild(div);
+    scrollToBottom();
+  }
+
+  function addTypingIndicator() {
+    const div = document.createElement('div');
+    div.className = 'chat-bubble assistant typing-indicator';
+    div.id = 'typing-indicator';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    chatWindow.appendChild(div);
+    scrollToBottom();
+  }
+
+  function removeTypingIndicator() {
+    document.getElementById('typing-indicator')?.remove();
+  }
+
+  function addAssistantBubble(result) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-bubble assistant';
+
+    if (result.emergency_detected) {
+      wrap.innerHTML = `<div class="emergency-banner">${escapeHtml(result.response)}</div>`;
+      chatWindow.appendChild(wrap);
+      scrollToBottom();
+      return;
+    }
+
+    const timelineChips = result.agent_timeline.map(t =>
+      `<span class="timeline-chip ${t.status !== 'completed' ? 'skipped' : ''}" title="${escapeHtml(t.detail || '')}">${t.status === 'completed' ? '✓' : '—'} ${escapeHtml(t.agent.replace(/_/g, ' '))}</span>`
+    ).join('');
+
+    const sources = result.retrieved_sources.map(s => `<span class="source-chip">📄 ${escapeHtml(s.source)}</span>`).join(' ');
+
+    wrap.innerHTML = `
+      <div class="msg-text"></div>
+      <div class="chat-timeline">${timelineChips}</div>
+      ${sources ? `<div class="mt-2 d-flex flex-wrap gap-1">${sources}</div>` : ''}
+      <div class="msg-actions">
+        <button type="button" class="copy-btn">Copy</button>
+        <button type="button" class="regen-btn">Regenerate</button>
+      </div>
+    `;
+    wrap.querySelector('.msg-text').textContent = result.response;
+    chatWindow.appendChild(wrap);
+
+    wrap.querySelector('.copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(result.response);
+      toast('Copied to clipboard', 'success');
+    });
+    wrap.querySelector('.regen-btn').addEventListener('click', () => sendMessage(result._originalMessage, true));
+
+    scrollToBottom();
+  }
+
+  async function loadHistory() {
+    try {
+      const history = await Api.getChatHistory();
+      history.forEach(turn => {
+        addUserBubble(turn.user_message);
+        const div = document.createElement('div');
+        div.className = 'chat-bubble assistant';
+        div.textContent = turn.ai_response;
+        chatWindow.appendChild(div);
+      });
+      scrollToBottom();
+    } catch (err) { /* non-fatal, chat still usable */ }
+  }
+
+  async function sendMessage(text, isRegenerate = false) {
+    if (!isRegenerate) addUserBubble(text);
+    addTypingIndicator();
+    document.getElementById('send-btn').disabled = true;
+
+    try {
+      const result = await Api.sendChatMessage(text);
+      result._originalMessage = text;
+      removeTypingIndicator();
+      addAssistantBubble(result);
+    } catch (err) {
+      removeTypingIndicator();
+      toast(err.message || 'Something went wrong sending your message.', 'error');
+    } finally {
+      document.getElementById('send-btn').disabled = false;
+    }
+  }
+
+  document.getElementById('chat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    sendMessage(text);
+  });
+
+  document.getElementById('clear-chat-btn').addEventListener('click', () => {
+    chatWindow.innerHTML = '';
+    toast('Chat cleared (history is still saved on the server)', 'info');
+  });
+
+  loadHistory();
+}
+NutriMamaNav.mount('chat').then(render);
+</script>
+</body>
+</html>

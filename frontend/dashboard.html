@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .quick-action { display:flex; flex-direction:column; align-items:center; gap:.5rem; padding: var(--space-4); background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-md); text-decoration:none; color:var(--color-ink); font-weight:600; font-size:var(--text-sm); text-align:center; transition:transform var(--transition-base), border-color var(--transition-base); }
+  .quick-action:hover { transform:translateY(-2px); border-color:var(--color-primary); text-decoration:none; color:var(--color-ink); }
+  .quick-action .qa-icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+  .hero-card { background: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary-light)); border-radius: var(--radius-lg); padding: var(--space-6); display:flex; align-items:center; gap: var(--space-6); flex-wrap:wrap; }
+  .reminder-row { display:flex; justify-content:space-between; align-items:center; padding: var(--space-3) 0; border-bottom:1px solid var(--color-border); }
+  .reminder-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `${skeletonBlock('220px')}`;
+
+  let profile, dashboard, user;
+  try {
+    [profile, dashboard, user] = await Promise.all([Api.getProfile(), Api.getDashboard(), Api.me()]);
+  } catch (err) {
+    main.innerHTML = `<div class="alert alert-danger">Couldn't load your dashboard: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+
+  const pregnancy = profile.pregnancy;
+  const week = pregnancy?.pregnancy_week ?? 0;
+  const trimester = pregnancy?.trimester;
+
+  main.innerHTML = `
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+      <div>
+        <h1 style="font-size:var(--text-3xl);">Hi, ${escapeHtml(user.full_name.split(' ')[0])} 👋</h1>
+        <p class="text-faint mb-0">Here's where things stand today.</p>
+      </div>
+    </div>
+
+    ${!pregnancy ? `
+      <div class="card-soft mb-4" style="border-color:var(--color-primary);">
+        <h3>Finish setting up your profile</h3>
+        <p class="mb-3">We need a few details to personalize your nutrition targets and meal plans.</p>
+        <a href="onboarding.html" class="btn btn-brand">Complete Onboarding</a>
+      </div>
+    ` : `
+      <div class="hero-card mb-4">
+        ${renderGrowingCircle({ week, size: 140, strokeWidth: 12 })}
+        <div>
+          <div class="text-faint" style="font-weight:700; text-transform:uppercase; font-size:var(--text-xs); letter-spacing:.05em;">${trimesterLabel(trimester)}</div>
+          <h2 style="margin-bottom:.25rem;">Week ${week} of your journey</h2>
+          <p class="mb-0">BMI: ${pregnancy.bmi ?? '—'} &nbsp;·&nbsp; Due ${formatDate(pregnancy.due_date)}</p>
+        </div>
+      </div>
+    `}
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card-stat">
+          <div class="stat-label">Calories Today</div>
+          <div class="stat-value">${Math.round(dashboard.today_nutrition.calories)}</div>
+          <div class="stat-sub">kcal logged</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-stat">
+          <div class="stat-label">Protein Today</div>
+          <div class="stat-value">${Math.round(dashboard.today_nutrition.protein_g)}g</div>
+          <div class="stat-sub">logged</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-stat">
+          <div class="stat-label">Water Today</div>
+          <div class="stat-value">${(dashboard.today_nutrition.water_ml/1000).toFixed(1)}L</div>
+          <div class="stat-sub">logged</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-stat">
+          <div class="stat-label">Latest Weight</div>
+          <div class="stat-value">${dashboard.latest_weight_kg ?? '—'}${dashboard.latest_weight_kg ? 'kg' : ''}</div>
+          <div class="stat-sub">${dashboard.weight_log_date ? formatDate(dashboard.weight_log_date) : 'not logged yet'}</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mb-3">Quick actions</h3>
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-2"><a class="quick-action" href="chat.html"><div class="qa-icon" style="background:var(--color-primary-light);">💬</div>Ask AI</a></div>
+      <div class="col-6 col-md-2"><a class="quick-action" href="mealplanner.html"><div class="qa-icon" style="background:var(--color-secondary-light);">🍱</div>Generate Meal Plan</a></div>
+      <div class="col-6 col-md-2"><a class="quick-action" href="foodsafety.html"><div class="qa-icon" style="background:var(--color-accent-light);">🛡️</div>Check Food Safety</a></div>
+      <div class="col-6 col-md-2"><a class="quick-action" href="tracker.html"><div class="qa-icon" style="background:var(--color-primary-light);">📝</div>Log Meal</a></div>
+      <div class="col-6 col-md-2"><a class="quick-action" href="reports.html"><div class="qa-icon" style="background:var(--color-secondary-light);">🩸</div>Upload Blood Report</a></div>
+      <div class="col-6 col-md-2"><a class="quick-action" href="settings.html"><div class="qa-icon" style="background:var(--color-accent-light);">⚙️</div>Update Profile</a></div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card-soft h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Upcoming Reminders</h3>
+            <a href="reminders.html" style="font-size:var(--text-sm);">View all</a>
+          </div>
+          ${dashboard.upcoming_reminders.length ? dashboard.upcoming_reminders.map(r => `
+            <div class="reminder-row">
+              <span>${escapeHtml(r.title)}</span>
+              <span class="text-faint" style="font-size:var(--text-sm);">${r.reminder_time}</span>
+            </div>
+          `).join('') : `<p class="text-faint mb-0">No reminders yet. <a href="reminders.html">Add one</a>.</p>`}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card-soft h-100">
+          <h3 class="mb-3">Today's Meal Plan</h3>
+          ${dashboard.today_meal_plan
+            ? `<p>${escapeHtml(JSON.stringify(dashboard.today_meal_plan))}</p>`
+            : `<p class="text-faint">No meal plan generated yet today. <a href="mealplanner.html">Generate one</a>.</p>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+NutriMamaNav.mount('dashboard').then(render);
+</script>
+</body>
+</html>

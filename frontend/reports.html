@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .tab-btn { background:none; border:none; padding:.6rem 1.2rem; font-weight:700; color:var(--color-ink-faint); border-bottom:2px solid transparent; }
+  .tab-btn.active { color:var(--color-primary-dark); border-color:var(--color-primary); }
+  .dropzone { border:2px dashed var(--color-border); border-radius:var(--radius-md); padding: var(--space-6); text-align:center; cursor:pointer; transition: border-color var(--transition-base); }
+  .dropzone.dragover, .dropzone:hover { border-color:var(--color-primary); }
+  .blood-value-row { display:flex; justify-content:space-between; padding:.5rem 0; border-bottom:1px solid var(--color-border); }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `
+    <h1 style="font-size:var(--text-2xl);">Reports</h1>
+    <div class="d-flex gap-2 mb-4" style="border-bottom:1px solid var(--color-border);">
+      <button class="tab-btn active" data-tab="nutrition">Nutrition Reports</button>
+      <button class="tab-btn" data-tab="blood">Blood Reports</button>
+    </div>
+    <div id="tab-content">${skeletonBlock('300px')}</div>
+  `;
+
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn => btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    btn.dataset.tab === 'nutrition' ? renderNutritionReports() : renderBloodReports();
+  }));
+
+  function statRow(label, weekly, monthly, unit) {
+    return `<div class="blood-value-row"><span>${label}</span><span>${weekly ?? '—'}${unit} / week &nbsp;·&nbsp; ${monthly ?? '—'}${unit} / month</span></div>`;
+  }
+
+  async function renderNutritionReports() {
+    const content = document.getElementById('tab-content');
+    content.innerHTML = skeletonBlock('300px');
+    try {
+      const [weekly, monthly] = await Promise.all([Api.getWeeklyReport(), Api.getMonthlyReport()]);
+      content.innerHTML = `
+        <div class="card-soft mb-4">
+          <h3>Average daily intake</h3>
+          ${statRow('Calories', weekly.average_calories, monthly.average_calories, ' kcal')}
+          ${statRow('Protein', weekly.average_protein_g, monthly.average_protein_g, 'g')}
+          ${statRow('Iron', weekly.average_iron_mg, monthly.average_iron_mg, 'mg')}
+          ${statRow('Water', weekly.average_water_ml, monthly.average_water_ml, 'ml')}
+          <p class="text-faint mt-2 mb-0" style="font-size:var(--text-sm);">Based on ${weekly.logged_days} logged day(s) this week, ${monthly.logged_days} this month.</p>
+        </div>
+        <div class="card-soft">
+          <h3>Weight trend (30 days)</h3>
+          ${monthly.weight_trend.length ? `
+            <table class="table"><thead><tr><th>Date</th><th>Weight</th></tr></thead><tbody>
+              ${monthly.weight_trend.map(w => `<tr><td>${formatDate(w.date)}</td><td>${w.weight_kg} kg</td></tr>`).join('')}
+            </tbody></table>
+          ` : `<p class="text-faint mb-0">No weight logs in the last 30 days.</p>`}
+        </div>
+      `;
+    } catch (err) {
+      content.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function renderBloodReports() {
+    const content = document.getElementById('tab-content');
+    content.innerHTML = `
+      <div class="row g-4">
+        <div class="col-md-5">
+          <div class="card-soft">
+            <h3>Upload a blood report</h3>
+            <p class="text-faint" style="font-size:var(--text-sm);">PDF, JPG, or PNG. We'll try to extract hemoglobin, ferritin, vitamin D, and blood sugar automatically.</p>
+            <div class="dropzone" id="dropzone">
+              <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" class="d-none">
+              <p class="mb-0">📄 Click to choose a file</p>
+            </div>
+            <div id="upload-status" class="mt-2"></div>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="card-soft">
+            <h3>Your reports</h3>
+            <div id="blood-list">${skeletonBlock('150px')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) uploadFile(fileInput.files[0]);
+    });
+
+    async function uploadFile(file) {
+      const status = document.getElementById('upload-status');
+      status.innerHTML = `<p class="text-faint">Uploading & analyzing…</p>`;
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const result = await Api.uploadBloodReport(formData);
+        status.innerHTML = `<p style="color:#1E7A45; font-weight:600;">✓ ${escapeHtml(result.message)}</p>`;
+        toast('Blood report uploaded!', 'success');
+        loadBloodList();
+      } catch (err) {
+        status.innerHTML = `<p style="color:#A83431;">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    async function loadBloodList() {
+      const el = document.getElementById('blood-list');
+      try {
+        const reports = await Api.listBloodReports();
+        if (!reports.length) { el.innerHTML = `<p class="text-faint">No reports uploaded yet.</p>`; return; }
+        el.innerHTML = reports.map(r => `
+          <div class="card-soft mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong>${formatDate(r.upload_date)}</strong>
+              <button class="btn btn-sm btn-brand-outline edit-btn" data-id="${r.id}">Edit values</button>
+            </div>
+            <div class="row g-2" style="font-size:var(--text-sm);">
+              <div class="col-6">Hemoglobin: <strong>${r.hemoglobin ?? '—'}</strong> g/dL</div>
+              <div class="col-6">Ferritin: <strong>${r.ferritin ?? '—'}</strong> ng/mL</div>
+              <div class="col-6">Vitamin D: <strong>${r.vitamin_d ?? '—'}</strong> ng/mL</div>
+              <div class="col-6">Blood Sugar: <strong>${r.blood_sugar ?? '—'}</strong> mg/dL</div>
+            </div>
+            ${r.ai_summary ? `<p class="mt-2 mb-0 text-faint" style="font-size:var(--text-sm);">${escapeHtml(r.ai_summary)}</p>` : ''}
+            <div class="edit-form d-none mt-3" data-id="${r.id}">
+              <div class="row g-2">
+                <div class="col-6"><label class="form-label">Hemoglobin</label><input type="number" step="0.1" class="form-control" data-field="hemoglobin" value="${r.hemoglobin ?? ''}"></div>
+                <div class="col-6"><label class="form-label">Ferritin</label><input type="number" step="0.1" class="form-control" data-field="ferritin" value="${r.ferritin ?? ''}"></div>
+                <div class="col-6"><label class="form-label">Vitamin D</label><input type="number" step="0.1" class="form-control" data-field="vitamin_d" value="${r.vitamin_d ?? ''}"></div>
+                <div class="col-6"><label class="form-label">Blood Sugar</label><input type="number" step="0.1" class="form-control" data-field="blood_sugar" value="${r.blood_sugar ?? ''}"></div>
+              </div>
+              <button class="btn btn-brand btn-sm mt-2 save-btn" data-id="${r.id}">Save corrections</button>
+            </div>
+          </div>
+        `).join('');
+
+        el.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => {
+          el.querySelector(`.edit-form[data-id="${btn.dataset.id}"]`).classList.toggle('d-none');
+        }));
+        el.querySelectorAll('.save-btn').forEach(btn => btn.addEventListener('click', async () => {
+          const form = el.querySelector(`.edit-form[data-id="${btn.dataset.id}"]`);
+          const payload = {};
+          form.querySelectorAll('[data-field]').forEach(input => {
+            payload[input.dataset.field] = input.value ? Number(input.value) : null;
+          });
+          try {
+            await Api.updateBloodReport(btn.dataset.id, payload);
+            toast('Values updated', 'success');
+            loadBloodList();
+          } catch (err) {
+            toast(err.message || 'Failed to update.', 'error');
+          }
+        }));
+      } catch (err) {
+        el.innerHTML = `<p class="text-faint">Couldn't load reports.</p>`;
+      }
+    }
+
+    loadBloodList();
+  }
+
+  renderNutritionReports();
+}
+NutriMamaNav.mount('reports').then(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+/* main.css — shared components, layout, and the "growing circle" signature motif */
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.2;
+  margin: 0 0 var(--space-3);
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+p  { line-height: 1.65; color: var(--color-ink-soft); margin: 0 0 var(--space-4); }
+
+a { color: var(--color-primary-dark); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Visible keyboard focus everywhere — accessibility floor */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Layout shell (sidebar + topbar for authenticated pages) --- */
+.app-shell { display: flex; min-height: 100vh; }
+
+.app-sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.app-main { flex: 1; min-width: 0; padding: var(--space-6) var(--space-8); }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  color: var(--color-ink);
+  margin-bottom: var(--space-6);
+  padding: 0 var(--space-2);
+}
+.brand .ring-mini { width: 28px; height: 28px; }
+
+.nav-link-app {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-soft);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  transition: background var(--transition-base), color var(--transition-base);
+}
+.nav-link-app:hover { background: var(--color-primary-light); color: var(--color-ink); text-decoration: none; }
+.nav-link-app.active { background: var(--color-primary-light); color: var(--color-primary-dark); font-weight: 700; }
+.nav-link-app svg { flex-shrink: 0; }
+
+.nav-divider { height: 1px; background: var(--color-border); margin: var(--space-4) var(--space-2); }
+
+/* --- Cards --- */
+.card-soft {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-stat {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+.card-stat .stat-label { font-size: var(--text-sm); color: var(--color-ink-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.card-stat .stat-value { font-family: var(--font-display); font-size: var(--text-3xl); margin: var(--space-1) 0; }
+.card-stat .stat-sub { font-size: var(--text-sm); color: var(--color-ink-faint); }
+
+/* --- Buttons (override Bootstrap defaults with brand style) --- */
+.btn-brand {
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-base), transform var(--transition-base);
+}
+.btn-brand:hover { background: var(--color-primary-dark); color: #fff; transform: translateY(-1px); }
+.btn-brand:disabled { opacity: 0.6; transform: none; }
+
+.btn-brand-outline {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  padding: 0.6rem 1.35rem;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-base);
+}
+.btn-brand-outline:hover { background: var(--color-primary-light); color: var(--color-primary-dark); }
+
+.btn-mint {
+  background: var(--color-accent);
+  border: none;
+  color: #1B4B1D;
+  font-weight: 600;
+  padding: 0.6rem 1.35rem;
+  border-radius: var(--radius-full);
+}
+.btn-mint:hover { background: var(--color-accent-dark); color: #1B4B1D; }
+
+/* --- Forms --- */
+.form-label { font-weight: 600; font-size: var(--text-sm); color: var(--color-ink); margin-bottom: var(--space-1); }
+.form-control, .form-select {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-body);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* --- Badges --- */
+.badge-soft { border-radius: var(--radius-full); padding: 0.3em 0.8em; font-weight: 600; font-size: var(--text-xs); }
+.badge-safe { background: var(--color-success-bg); color: #1E7A45; }
+.badge-moderation { background: var(--color-warning-bg); color: #92610C; }
+.badge-avoid { background: var(--color-danger-bg); color: #A83431; }
+
+/* --- Arc divider (signature motif, replaces plain <hr>) --- */
+.arc-divider { display: flex; justify-content: center; margin: var(--space-8) 0; }
+.arc-divider svg { display: block; }
+
+/* --- The Growing Circle: pregnancy-week progress ring --- */
+.growing-circle { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.growing-circle svg { transform: rotate(-90deg); }
+.growing-circle .ring-bg { fill: none; stroke: var(--color-border); }
+.growing-circle .ring-t1 { fill: none; stroke: var(--color-primary); stroke-linecap: round; }
+.growing-circle .ring-t2 { fill: none; stroke: var(--color-secondary); stroke-linecap: round; }
+.growing-circle .ring-t3 { fill: none; stroke: var(--color-accent-dark); stroke-linecap: round; }
+.growing-circle .ring-label { position: absolute; text-align: center; }
+.growing-circle .ring-label .week-num { font-family: var(--font-display); font-size: var(--text-3xl); display: block; line-height: 1; }
+.growing-circle .ring-label .week-sub { font-size: var(--text-xs); color: var(--color-ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* --- Chat interface --- */
+.chat-window { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-2) 0; }
+.chat-bubble { max-width: 75%; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); line-height: 1.6; font-size: var(--text-sm); }
+.chat-bubble.user { align-self: flex-end; background: var(--color-primary); color: #fff; border-bottom-right-radius: var(--space-1); }
+.chat-bubble.assistant { align-self: flex-start; background: var(--color-surface); border: 1px solid var(--color-border); border-bottom-left-radius: var(--space-1); white-space: pre-wrap; }
+.chat-timeline { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.timeline-chip { font-size: var(--text-xs); padding: 0.25em 0.7em; border-radius: var(--radius-full); background: var(--color-secondary-light); color: var(--color-secondary-dark); font-weight: 600; }
+.timeline-chip.skipped { background: var(--color-border); color: var(--color-ink-faint); }
+
+/* --- Skeleton loaders --- */
+.skeleton { background: linear-gradient(90deg, var(--color-border) 25%, #f5eef0 37%, var(--color-border) 63%); background-size: 400% 100%; animation: skeleton-shimmer 1.4s ease infinite; border-radius: var(--radius-sm); }
+@keyframes skeleton-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* --- Utility --- */
+.text-faint { color: var(--color-ink-faint); }
+.text-soft { color: var(--color-ink-soft); }
+.disclaimer-box { background: var(--color-secondary-light); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: var(--text-xs); color: var(--color-ink-soft); }
+.emergency-banner { background: var(--color-danger-bg); border: 1.5px solid var(--color-danger); border-radius: var(--radius-md); padding: var(--space-4); color: #7A2622; font-weight: 600; }
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .app-shell { flex-direction: column; }
+  .app-sidebar { width: 100%; height: auto; position: relative; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--color-border); }
+  .app-sidebar .brand { display: none; }
+  .nav-divider { display: none; }
+  .app-main { padding: var(--space-4); }
+}

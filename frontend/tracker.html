@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nutrition Tracker — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .progress-row { margin-bottom: var(--space-3); }
+  .progress-row .label-row { display:flex; justify-content:space-between; font-size:var(--text-sm); font-weight:600; margin-bottom:.25rem; }
+  .progress-track { height:10px; background:var(--color-border); border-radius:var(--radius-full); overflow:hidden; }
+  .progress-fill { height:100%; background:var(--color-primary); border-radius:var(--radius-full); transition: width 400ms ease; }
+  .tab-btn { background:none; border:none; padding:.6rem 1.2rem; font-weight:700; color:var(--color-ink-faint); border-bottom:2px solid transparent; }
+  .tab-btn.active { color:var(--color-primary-dark); border-color:var(--color-primary); }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `
+    <h1 style="font-size:var(--text-2xl);">Nutrition Tracker</h1>
+    <div class="d-flex gap-2 mb-4" style="border-bottom:1px solid var(--color-border);">
+      <button class="tab-btn active" data-tab="nutrition">Nutrition</button>
+      <button class="tab-btn" data-tab="weight">Weight</button>
+    </div>
+    <div id="tab-content">${skeletonBlock('300px')}</div>
+  `;
+
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn => btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.dataset.tab === 'nutrition') renderNutritionTab();
+    else renderWeightTab();
+  }));
+
+  async function renderNutritionTab() {
+    const content = document.getElementById('tab-content');
+    content.innerHTML = `
+      <div class="row g-4">
+        <div class="col-md-5">
+          <div class="card-soft">
+            <h3>Log today's nutrition</h3>
+            <form id="nutrition-form">
+              <div class="row g-2">
+                <div class="col-6"><label class="form-label">Calories</label><input type="number" class="form-control" id="calories" min="0" required></div>
+                <div class="col-6"><label class="form-label">Protein (g)</label><input type="number" class="form-control" id="protein_g" min="0"></div>
+                <div class="col-6"><label class="form-label">Iron (mg)</label><input type="number" class="form-control" id="iron_mg" min="0"></div>
+                <div class="col-6"><label class="form-label">Calcium (mg)</label><input type="number" class="form-control" id="calcium_mg" min="0"></div>
+                <div class="col-6"><label class="form-label">Folate (mcg)</label><input type="number" class="form-control" id="folate_mcg" min="0"></div>
+                <div class="col-6"><label class="form-label">Water (ml)</label><input type="number" class="form-control" id="water_ml" min="0"></div>
+              </div>
+              <button type="submit" class="btn btn-brand w-100 mt-3">Log Entry</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="card-soft">
+            <h3>Recent history</h3>
+            <div id="nutrition-history">${skeletonBlock('200px')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('nutrition-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {};
+      ['calories','protein_g','iron_mg','calcium_mg','folate_mcg','water_ml'].forEach(id => {
+        const val = document.getElementById(id).value;
+        payload[id] = val ? Number(val) : 0;
+      });
+      try {
+        await Api.logNutrition(payload);
+        toast('Nutrition logged!', 'success');
+        e.target.reset();
+        loadNutritionHistory();
+      } catch (err) {
+        toast(err.message || 'Failed to log nutrition.', 'error');
+      }
+    });
+
+    loadNutritionHistory();
+  }
+
+  async function loadNutritionHistory() {
+    const el = document.getElementById('nutrition-history');
+    try {
+      const history = await Api.getNutritionHistory();
+      if (!history.length) { el.innerHTML = `<p class="text-faint">No entries yet.</p>`; return; }
+      const maxCal = Math.max(...history.map(h => h.calories), 1);
+      el.innerHTML = history.slice(0, 10).map(h => `
+        <div class="progress-row">
+          <div class="label-row"><span>${formatDate(h.log_date)}</span><span>${Math.round(h.calories)} kcal</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:${(h.calories/maxCal*100).toFixed(0)}%;"></div></div>
+        </div>
+      `).join('');
+    } catch (err) {
+      el.innerHTML = `<p class="text-faint">Couldn't load history.</p>`;
+    }
+  }
+
+  async function renderWeightTab() {
+    const content = document.getElementById('tab-content');
+    content.innerHTML = `
+      <div class="row g-4">
+        <div class="col-md-5">
+          <div class="card-soft">
+            <h3>Log your weight</h3>
+            <form id="weight-form">
+              <label class="form-label">Weight (kg)</label>
+              <input type="number" class="form-control mb-2" id="weight_kg" min="0" step="0.1" required>
+              <label class="form-label">Notes (optional)</label>
+              <input type="text" class="form-control" id="notes">
+              <button type="submit" class="btn btn-brand w-100 mt-3">Log Weight</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="card-soft">
+            <h3>Weight trend</h3>
+            <div id="weight-history">${skeletonBlock('200px')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('weight-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await Api.logWeight({
+          weight_kg: Number(document.getElementById('weight_kg').value),
+          notes: document.getElementById('notes').value || null,
+        });
+        toast('Weight logged!', 'success');
+        e.target.reset();
+        loadWeightHistory();
+      } catch (err) {
+        toast(err.message || 'Failed to log weight.', 'error');
+      }
+    });
+
+    loadWeightHistory();
+  }
+
+  async function loadWeightHistory() {
+    const el = document.getElementById('weight-history');
+    try {
+      const history = await Api.getWeightHistory();
+      if (!history.length) { el.innerHTML = `<p class="text-faint">No entries yet.</p>`; return; }
+      el.innerHTML = `<table class="table"><thead><tr><th>Date</th><th>Weight</th><th>Weekly change</th></tr></thead><tbody>` +
+        history.slice(0, 10).map(h => `
+          <tr>
+            <td>${formatDate(h.log_date)}</td>
+            <td>${h.weight_kg} kg</td>
+            <td>${h.weekly_gain_kg != null ? (h.weekly_gain_kg > 0 ? '+' : '') + h.weekly_gain_kg + ' kg' : '—'}</td>
+          </tr>
+        `).join('') + `</tbody></table>`;
+    } catch (err) {
+      el.innerHTML = `<p class="text-faint">Couldn't load history.</p>`;
+    }
+  }
+
+  renderNutritionTab();
+}
+NutriMamaNav.mount('tracker').then(render);
+</script>
+</body>
+</html>

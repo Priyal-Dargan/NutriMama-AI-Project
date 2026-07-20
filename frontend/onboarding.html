@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  body { min-height:100vh; padding: var(--space-6) var(--space-4); }
+  .wizard-wrap { max-width:640px; margin:0 auto; }
+  .step-track { display:flex; gap:.4rem; margin-bottom: var(--space-6); }
+  .step-dot { flex:1; height:6px; border-radius:var(--radius-full); background:var(--color-border); }
+  .step-dot.done, .step-dot.active { background:var(--color-primary); }
+  .wizard-card { background:var(--color-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding: var(--space-8); }
+  .step-panel { display:none; }
+  .step-panel.active { display:block; }
+  .check-chip { display:flex; align-items:center; gap:.6rem; padding:.7rem 1rem; border:1.5px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:var(--text-sm); }
+  .check-chip input { accent-color: var(--color-primary); width:18px; height:18px; }
+</style>
+</head>
+<body>
+<div class="wizard-wrap">
+  <div class="text-center mb-4">
+    <span class="font-display" style="font-weight:600; font-size:var(--text-lg);">Let's set up your profile</span>
+  </div>
+  <div class="step-track" id="step-track"></div>
+
+  <div class="wizard-card">
+    <div id="alert-box" class="alert alert-danger d-none" style="border-radius:var(--radius-sm);"></div>
+
+    <!-- Step 1: Personal Information -->
+    <div class="step-panel active" data-step="1">
+      <h2>Personal information</h2>
+      <p class="text-faint">This helps us calculate your nutritional needs accurately.</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label">Age</label>
+          <input type="number" class="form-control" id="age" min="13" max="60" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Height (cm)</label>
+          <input type="number" class="form-control" id="height_cm" min="100" max="220" step="0.1" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Current weight (kg)</label>
+          <input type="number" class="form-control" id="current_weight_kg" min="30" max="200" step="0.1" required>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Pre-pregnancy weight (kg)</label>
+          <input type="number" class="form-control" id="pre_pregnancy_weight_kg" min="30" max="200" step="0.1">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Pregnancy Information -->
+    <div class="step-panel" data-step="2">
+      <h2>Pregnancy information</h2>
+      <p class="text-faint">We'll use this to calculate your current trimester and week.</p>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label">Due date</label>
+          <input type="date" class="form-control" id="due_date">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Pregnancy type</label>
+          <select class="form-select" id="pregnancy_type">
+            <option value="singleton">Singleton</option>
+            <option value="twins">Twins</option>
+            <option value="triplets">Triplets</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Activity level</label>
+          <select class="form-select" id="activity_level">
+            <option value="sedentary">Sedentary</option>
+            <option value="light">Light</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="active">Active</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Medical History -->
+    <div class="step-panel" data-step="3">
+      <h2>Medical history</h2>
+      <p class="text-faint">Optional, but helps personalize your guidance. You can update this anytime in Settings.</p>
+      <div class="row g-2">
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="diabetes"> Diabetes</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="gestational_diabetes"> Gestational diabetes</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="hypertension"> Hypertension</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="pcos"> PCOS</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="thyroid"> Thyroid condition</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="anemia"> Anemia</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="lactose_intolerance"> Lactose intolerance</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="gluten_intolerance"> Gluten intolerance</label></div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label">Allergies (comma-separated)</label>
+        <input type="text" class="form-control" id="allergies" placeholder="e.g. peanuts, shellfish">
+      </div>
+    </div>
+
+    <!-- Step 4: Dietary Preferences -->
+    <div class="step-panel" data-step="4">
+      <h2>Dietary preferences</h2>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="vegetarian"> Vegetarian</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="vegan"> Vegan</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="jain"> Jain</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="eggetarian"> Eggetarian</label></div>
+        <div class="col-6"><label class="check-chip"><input type="checkbox" id="non_vegetarian"> Non-vegetarian</label></div>
+      </div>
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label">Cuisine preference</label>
+          <input type="text" class="form-control" id="cuisine" placeholder="e.g. North Indian">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Budget</label>
+          <select class="form-select" id="budget">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Food Preferences -->
+    <div class="step-panel" data-step="5">
+      <h2>Food preferences</h2>
+      <p class="text-faint">This helps your meal plans feel like food you'll actually enjoy.</p>
+      <div class="mb-3">
+        <label class="form-label">Favorite foods (comma-separated)</label>
+        <input type="text" class="form-control" id="favorite_foods" placeholder="e.g. dal, paneer, mango">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Disliked foods (comma-separated)</label>
+        <input type="text" class="form-control" id="disliked_foods" placeholder="e.g. bitter gourd">
+      </div>
+      <div>
+        <label class="form-label">Ingredients you usually have on hand</label>
+        <input type="text" class="form-control" id="available_ingredients" placeholder="e.g. rice, lentils, spinach, milk">
+      </div>
+    </div>
+
+    <!-- Step 6: Goals -->
+    <div class="step-panel" data-step="6">
+      <h2>You're all set 🎉</h2>
+      <p class="text-faint">We'll generate your personalized nutrition profile now. You can update anything later in Settings.</p>
+      <div class="disclaimer-box">This assistant provides educational information only and is not a substitute for professional medical advice. Always consult a qualified healthcare professional before making medical decisions.</div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-5">
+      <button class="btn btn-brand-outline" id="back-btn">Back</button>
+      <button class="btn btn-brand" id="next-btn">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  Auth.requireAuth();
+
+  const TOTAL_STEPS = 6;
+  let currentStep = 1;
+
+  function renderTrack() {
+    const track = document.getElementById('step-track');
+    track.innerHTML = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'step-dot' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+      track.appendChild(dot);
+    }
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.toggle('active', Number(p.dataset.step) === n));
+    document.getElementById('back-btn').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('next-btn').textContent = n === TOTAL_STEPS ? 'Finish & Go to Dashboard' : 'Continue';
+    renderTrack();
+  }
+
+  function parseList(id) {
+    const val = document.getElementById(id).value.trim();
+    return val ? val.split(',').map(s => s.trim()).filter(Boolean) : null;
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('alert-box');
+    box.textContent = msg;
+    box.classList.remove('d-none');
+  }
+
+  async function finishOnboarding() {
+    const btn = document.getElementById('next-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    document.getElementById('alert-box').classList.add('d-none');
+
+    try {
+      await Api.updatePregnancyProfile({
+        age: Number(document.getElementById('age').value),
+        height_cm: Number(document.getElementById('height_cm').value),
+        current_weight_kg: Number(document.getElementById('current_weight_kg').value),
+        pre_pregnancy_weight_kg: document.getElementById('pre_pregnancy_weight_kg').value ? Number(document.getElementById('pre_pregnancy_weight_kg').value) : null,
+        due_date: document.getElementById('due_date').value || null,
+        pregnancy_type: document.getElementById('pregnancy_type').value,
+        activity_level: document.getElementById('activity_level').value,
+      });
+
+      await Api.updateMedicalHistory({
+        diabetes: document.getElementById('diabetes').checked,
+        gestational_diabetes: document.getElementById('gestational_diabetes').checked,
+        hypertension: document.getElementById('hypertension').checked,
+        pcos: document.getElementById('pcos').checked,
+        thyroid: document.getElementById('thyroid').checked,
+        anemia: document.getElementById('anemia').checked,
+        lactose_intolerance: document.getElementById('lactose_intolerance').checked,
+        gluten_intolerance: document.getElementById('gluten_intolerance').checked,
+        allergies: parseList('allergies'),
+        other_conditions: null,
+      });
+
+      await Api.updateDietPreferences({
+        vegetarian: document.getElementById('vegetarian').checked,
+        vegan: document.getElementById('vegan').checked,
+        jain: document.getElementById('jain').checked,
+        eggetarian: document.getElementById('eggetarian').checked,
+        non_vegetarian: document.getElementById('non_vegetarian').checked,
+        cuisine: document.getElementById('cuisine').value.trim() || null,
+        budget: document.getElementById('budget').value,
+        favorite_foods: parseList('favorite_foods'),
+        disliked_foods: parseList('disliked_foods'),
+        available_ingredients: parseList('available_ingredients'),
+      });
+
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showError(err.message || 'Something went wrong saving your profile. Please review your entries and try again.');
+      btn.disabled = false;
+      btn.textContent = 'Finish & Go to Dashboard';
+    }
+  }
+
+  function validateStep(n) {
+    if (n === 1) {
+      const age = document.getElementById('age').value;
+      const height = document.getElementById('height_cm').value;
+      const weight = document.getElementById('current_weight_kg').value;
+      if (!age || !height || !weight) {
+        showError('Please fill in age, height, and current weight to continue.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  document.getElementById('next-btn').addEventListener('click', () => {
+    document.getElementById('alert-box').classList.add('d-none');
+    if (!validateStep(currentStep)) return;
+    if (currentStep === TOTAL_STEPS) {
+      finishOnboarding();
+      return;
+    }
+    currentStep++;
+    showStep(currentStep);
+  });
+
+  document.getElementById('back-btn').addEventListener('click', () => {
+    if (currentStep > 1) { currentStep--; showStep(currentStep); }
+  });
+
+  showStep(currentStep);
+</script>
+</body>
+</html>

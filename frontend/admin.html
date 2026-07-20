@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .dropzone { border:2px dashed var(--color-border); border-radius:var(--radius-md); padding: var(--space-5); text-align:center; cursor:pointer; }
+  .dropzone:hover { border-color:var(--color-primary); }
+  .doc-chip { display:inline-flex; align-items:center; gap:.4rem; background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-full); padding:.35rem .8rem; font-size:var(--text-sm); font-weight:600; margin:.2rem; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `<h1 style="font-size:var(--text-2xl);">Admin Panel</h1>${skeletonBlock('400px')}`;
+
+  let dashboard, ragStatus, feedback;
+  try {
+    [dashboard, ragStatus, feedback] = await Promise.all([
+      Api.adminDashboard(), Api.adminRagStatus(), Api.adminFeedback(),
+    ]);
+  } catch (err) {
+    main.innerHTML = `<h1 style="font-size:var(--text-2xl);">Admin Panel</h1>
+      <div class="alert alert-danger">${escapeHtml(err.message)} — this page requires an admin account.</div>`;
+    return;
+  }
+
+  main.innerHTML = `
+    <h1 style="font-size:var(--text-2xl);">Admin Panel</h1>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-3"><div class="card-stat"><div class="stat-label">Total Users</div><div class="stat-value">${dashboard.total_users}</div></div></div>
+      <div class="col-md-3"><div class="card-stat"><div class="stat-label">AI Chat Messages</div><div class="stat-value">${dashboard.total_ai_chat_messages}</div></div></div>
+      <div class="col-md-3"><div class="card-stat"><div class="stat-label">Avg Feedback Rating</div><div class="stat-value">${dashboard.average_feedback_rating ?? '—'}</div></div></div>
+      <div class="col-md-3"><div class="card-stat"><div class="stat-label">RAG Chunks Indexed</div><div class="stat-value">${ragStatus.chunks_indexed}</div></div></div>
+    </div>
+
+    <div class="card-soft mb-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <h3>RAG Knowledge Base</h3>
+          <p class="mb-1">Embedder: <strong>${escapeHtml(ragStatus.embedder_type)}</strong>
+            ${ragStatus.embedder_type.includes('Tfidf') ? '<span class="badge-soft badge-moderation">Offline fallback active</span>' : '<span class="badge-soft badge-safe">Sentence Transformers</span>'}
+          </p>
+          <p class="text-faint mb-2" style="font-size:var(--text-sm);">Index ready: ${ragStatus.is_ready ? 'Yes' : 'No — rebuild the index below'}</p>
+          <div>${ragStatus.documents_on_disk.map(d => `<span class="doc-chip">📄 ${escapeHtml(d)}</span>`).join('')}</div>
+        </div>
+        <button class="btn btn-brand" id="rebuild-btn">Rebuild Index</button>
+      </div>
+    </div>
+
+    <div class="card-soft mb-4">
+      <h3>Upload New Document</h3>
+      <p class="text-faint" style="font-size:var(--text-sm);">PDF only. After uploading, click "Rebuild Index" above to include it in retrieval.</p>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="doc-input" accept=".pdf" class="d-none">
+        <p class="mb-0">📄 Click to choose a PDF</p>
+      </div>
+      <div id="doc-upload-status" class="mt-2"></div>
+    </div>
+
+    <div class="card-soft">
+      <h3>Recent Feedback</h3>
+      ${feedback.length ? feedback.map(f => `
+        <div style="border-bottom:1px solid var(--color-border); padding: .6rem 0;">
+          <strong>${f.rating ? '⭐'.repeat(f.rating) : 'No rating'}</strong>
+          <p class="mb-0">${escapeHtml(f.feedback_text || '')}</p>
+        </div>
+      `).join('') : `<p class="text-faint mb-0">No feedback submitted yet.</p>`}
+    </div>
+  `;
+
+  document.getElementById('rebuild-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('rebuild-btn');
+    btn.disabled = true;
+    btn.textContent = 'Rebuilding…';
+    try {
+      const result = await Api.adminRebuildIndex();
+      toast(`Index rebuilt: ${result.chunks_indexed} chunks from ${result.documents_processed} document(s)`, 'success');
+      render();
+    } catch (err) {
+      toast(err.message || 'Rebuild failed.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Rebuild Index';
+    }
+  });
+
+  const dropzone = document.getElementById('dropzone');
+  const docInput = document.getElementById('doc-input');
+  dropzone.addEventListener('click', () => docInput.click());
+  docInput.addEventListener('change', async () => {
+    if (!docInput.files.length) return;
+    const status = document.getElementById('doc-upload-status');
+    status.innerHTML = `<p class="text-faint">Uploading…</p>`;
+    const formData = new FormData();
+    formData.append('file', docInput.files[0]);
+    try {
+      const result = await Api.adminUploadDocument(formData);
+      status.innerHTML = `<p style="color:#1E7A45; font-weight:600;">✓ ${escapeHtml(result.message)}</p>`;
+    } catch (err) {
+      status.innerHTML = `<p style="color:#A83431;">${escapeHtml(err.message)}</p>`;
+    }
+  });
+}
+NutriMamaNav.mount('admin').then(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medical Resources — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .resource-card { background:var(--color-surface); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding: var(--space-5); height:100%; }
+  .faq-item { border-bottom:1px solid var(--color-border); padding: var(--space-3) 0; }
+  .faq-item summary { cursor:pointer; font-weight:700; }
+  .faq-item summary::-webkit-details-marker { display:none; }
+</style>
+</head>
+<body>
+<div id="app-shell"></div>
+
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function render() {
+  NutriMamaNav_setContent();
+}
+
+function NutriMamaNav_setContent() {
+  const main = document.getElementById('app-main-content');
+  main.innerHTML = `
+    <h1 style="font-size:var(--text-2xl);">Medical Resources</h1>
+    <p class="text-faint mb-4">Educational articles and guides — organized by topic, chunked and indexed in our RAG knowledge base so the AI Chat can cite them directly.</p>
+
+    <div class="row g-3 mb-5">
+      <div class="col-md-4">
+        <div class="resource-card">
+          <h3 style="font-size:var(--text-lg);">🍽️ General Pregnancy Nutrition</h3>
+          <p class="text-faint mb-0" style="font-size:var(--text-sm);">Calorie needs, protein, folate, iron, calcium, vitamin D, omega-3s, hydration, and weight gain guidance by BMI category.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="resource-card">
+          <h3 style="font-size:var(--text-lg);">🩸 Iron & Anemia</h3>
+          <p class="text-faint mb-0" style="font-size:var(--text-sm);">Why iron needs increase, dietary sources, absorption tips, and when supplementation is typically discussed.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="resource-card">
+          <h3 style="font-size:var(--text-lg);">🛡️ Food Safety</h3>
+          <p class="text-faint mb-0" style="font-size:var(--text-sm);">Foods to avoid, high-mercury fish, caffeine limits, and safe food handling practices.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="resource-card">
+          <h3 style="font-size:var(--text-lg);">🥛 Calcium & Vitamin D</h3>
+          <p class="text-faint mb-0" style="font-size:var(--text-sm);">Targets, dietary sources, and absorption considerations for bone health.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="resource-card">
+          <h3 style="font-size:var(--text-lg);">🍚 Gestational Diabetes</h3>
+          <p class="text-faint mb-0" style="font-size:var(--text-sm);">Dietary principles commonly advised for managing gestational diabetes alongside monitoring.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="resource-card" style="background:var(--color-secondary-light); border:none;">
+          <h3 style="font-size:var(--text-lg);">💬 Ask the AI Chat</h3>
+          <p class="mb-3" style="font-size:var(--text-sm);">Want details on any of these topics? Ask in AI Chat — the Medical Guidelines Agent retrieves from these exact resources.</p>
+          <a href="chat.html" class="btn btn-brand btn-sm">Open AI Chat</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="font-size:var(--text-xl);">Frequently Asked Questions</h2>
+    <details class="faq-item" open>
+      <summary>Where does this guidance come from?</summary>
+      <p class="mt-2 mb-0">These are educational reference summaries reflecting broadly published pregnancy nutrition
+        consensus. They are not verbatim official WHO/CDC/ICMR documents — always confirm specifics with your
+        healthcare provider.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I trust the AI's food safety answers?</summary>
+      <p class="mt-2 mb-0">Common foods are checked against a curated, source-backed table first. Less common foods
+        fall back to AI-generated guidance, which is clearly labeled as lower-confidence — always double check
+        anything uncertain with your provider.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What if I have a medical emergency?</summary>
+      <p class="mt-2 mb-0">Contact your healthcare provider or emergency services immediately. This app is
+        educational only and cannot respond to medical emergencies.</p>
+    </details>
+
+    <div class="mt-5" id="disclaimer-slot"></div>
+  `;
+  renderDisclaimer(document.getElementById('disclaimer-slot'));
+}
+
+NutriMamaNav.mount('resources').then(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding: var(--space-4); }
+  .auth-card { max-width:440px; width:100%; background:var(--color-surface); border-radius:var(--radius-lg); box-shadow: var(--shadow-lg); padding: var(--space-8); }
+  .auth-brand { display:flex; align-items:center; gap:.6rem; justify-content:center; margin-bottom: var(--space-6); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <a href="index.html" class="auth-brand">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--color-border)" stroke-width="3"/><path d="M16 3 A13 13 0 0 1 27.25 21.5" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round"/><path d="M27.25 21.5 A13 13 0 0 1 16 29" stroke="var(--color-secondary)" stroke-width="3" stroke-linecap="round"/></svg>
+    <span class="font-display" style="font-weight:600; font-size:var(--text-lg); color:var(--color-ink);">NutriMama AI</span>
+  </a>
+  <h2 class="text-center mb-1">Create your account</h2>
+  <p class="text-center text-faint mb-4" style="font-size:var(--text-sm);">Free to get started — takes about a minute.</p>
+
+  <div id="error-alert" class="alert alert-danger d-none" style="border-radius:var(--radius-sm);"></div>
+
+  <form id="register-form" novalidate>
+    <div class="mb-3">
+      <label class="form-label" for="full_name">Full name</label>
+      <input type="text" class="form-control" id="full_name" required minlength="2">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="email">Email</label>
+      <input type="email" class="form-control" id="email" required autocomplete="email">
+    </div>
+    <div class="mb-1">
+      <label class="form-label" for="password">Password</label>
+      <input type="password" class="form-control" id="password" required minlength="8" autocomplete="new-password">
+    </div>
+    <p class="text-faint mb-3" style="font-size:var(--text-xs);">At least 8 characters.</p>
+    <button type="submit" class="btn btn-brand w-100" id="submit-btn">Create Account</button>
+  </form>
+
+  <p class="text-center mt-4" style="font-size:var(--text-sm);">Already have an account? <a href="login.html">Log in</a></p>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const errorAlert = document.getElementById('error-alert');
+    errorAlert.classList.add('d-none');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+
+    try {
+      const result = await Api.register({
+        full_name: document.getElementById('full_name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+      });
+      Auth.setTokens(result.access_token, result.refresh_token);
+      window.location.href = 'onboarding.html';
+    } catch (err) {
+      errorAlert.textContent = err.message || 'Registration failed. Please try again.';
+      errorAlert.classList.remove('d-none');
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  });
+
+  if (Auth.isLoggedIn()) window.location.href = 'dashboard.html';
+</script>
+</body>
+</html>

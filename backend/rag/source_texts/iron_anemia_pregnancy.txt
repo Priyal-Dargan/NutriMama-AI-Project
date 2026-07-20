@@ -1,0 +1,60 @@
+NutriMama AI Educational Reference — Iron & Anemia in Pregnancy
+(Original educational summary prepared for NutriMama AI, reflecting broadly
+published public health consensus. Not a verbatim reproduction of any single
+official guideline. Educational use only — consult your healthcare provider for
+personal medical guidance, especially if you have been diagnosed with anemia.)
+
+Why Iron Matters More in Pregnancy
+Blood volume increases by roughly 40-50% during pregnancy to support the growing
+fetus and placenta. This extra blood requires more iron to produce hemoglobin,
+the protein that carries oxygen. Without enough iron, a pregnant person can
+develop iron-deficiency anemia, which has been associated with fatigue, reduced
+work capacity, and — in more severe or prolonged cases — increased risk of preterm
+delivery and low birth weight.
+
+Common Target
+A commonly cited target during pregnancy is 27 mg of iron per day, roughly double
+the non-pregnant adult target. Many prenatal vitamins are formulated with this in
+mind, though individual needs vary and should be confirmed with a provider,
+especially for those already diagnosed with anemia, who may be advised a higher
+therapeutic dose under medical supervision.
+
+Dietary Sources
+Iron comes in two forms:
+- Heme iron (from animal sources: red meat, poultry, fish) is generally more
+  easily absorbed by the body.
+- Non-heme iron (from plant sources: lentils, chickpeas, tofu, spinach, fortified
+  cereals, pumpkin seeds) is somewhat less efficiently absorbed on its own, but
+  absorption improves significantly when paired with vitamin C-rich foods (citrus,
+  tomatoes, bell peppers) in the same meal.
+
+Absorption Tips
+- Pairing iron-rich foods with vitamin C sources can meaningfully improve
+  non-heme iron absorption.
+- Tea and coffee contain tannins that can inhibit iron absorption; some guidance
+  suggests spacing these apart from iron-rich meals or iron supplements by roughly
+  an hour.
+- Calcium can also compete with iron for absorption, which is one reason some
+  providers advise taking iron and calcium supplements at different times of day
+  rather than together.
+
+Common Symptoms of Iron-Deficiency Anemia
+Fatigue, pale skin, shortness of breath, dizziness, and unusual cravings for
+non-food items (a condition called pica) are commonly cited symptoms. Because mild
+anemia can be asymptomatic, routine blood testing (checking hemoglobin and often
+ferritin) during prenatal visits is the standard way it's identified, rather than
+relying on symptoms alone.
+
+Supplementation
+For those diagnosed with anemia, providers often recommend an iron supplement
+dose higher than what's in a standard prenatal vitamin, sometimes alongside
+dietary changes. Supplement type, dose, and timing should be determined by a
+healthcare provider based on bloodwork — self-prescribing high-dose iron is not
+advised, since excess iron can cause gastrointestinal side effects and, in rare
+cases, more serious complications.
+
+A Note on Food-Based Reminders
+This reference and the NutriMama AI reminder feature can help track intake of
+iron-rich foods and supplement timing, but they are educational and organizational
+tools only — they do not replace bloodwork-based diagnosis or a provider's
+treatment plan.

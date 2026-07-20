@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log In — NutriMama AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding: var(--space-4); }
+  .auth-card { max-width:420px; width:100%; background:var(--color-surface); border-radius:var(--radius-lg); box-shadow: var(--shadow-lg); padding: var(--space-8); }
+  .auth-brand { display:flex; align-items:center; gap:.6rem; justify-content:center; margin-bottom: var(--space-6); text-decoration:none; }
+  .password-toggle { cursor:pointer; border:none; background:none; color:var(--color-ink-faint); }
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <a href="index.html" class="auth-brand">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="var(--color-border)" stroke-width="3"/><path d="M16 3 A13 13 0 0 1 27.25 21.5" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round"/><path d="M27.25 21.5 A13 13 0 0 1 16 29" stroke="var(--color-secondary)" stroke-width="3" stroke-linecap="round"/></svg>
+    <span class="font-display" style="font-weight:600; font-size:var(--text-lg); color:var(--color-ink);">NutriMama AI</span>
+  </a>
+  <h2 class="text-center mb-1">Welcome back</h2>
+  <p class="text-center text-faint mb-4" style="font-size:var(--text-sm);">Log in to continue your nutrition journey.</p>
+
+  <div id="expired-alert" class="alert alert-warning d-none" style="border-radius:var(--radius-sm);">Your session expired. Please log in again.</div>
+  <div id="error-alert" class="alert alert-danger d-none" style="border-radius:var(--radius-sm);"></div>
+
+  <form id="login-form" novalidate>
+    <div class="mb-3">
+      <label class="form-label" for="email">Email</label>
+      <input type="email" class="form-control" id="email" required autocomplete="email">
+    </div>
+    <div class="mb-2">
+      <label class="form-label" for="password">Password</label>
+      <div class="input-group">
+        <input type="password" class="form-control" id="password" required autocomplete="current-password">
+        <button class="btn border password-toggle" type="button" id="toggle-password" style="border-color:var(--color-border) !important; border-radius:0 var(--radius-sm) var(--radius-sm) 0;" aria-label="Show password">👁</button>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <label class="d-flex align-items-center gap-2" style="font-size:var(--text-sm);">
+        <input type="checkbox" id="remember-me"> Remember me
+      </label>
+      <a href="forgot-password.html" style="font-size:var(--text-sm);">Forgot password?</a>
+    </div>
+    <button type="submit" class="btn btn-brand w-100" id="submit-btn">Log In</button>
+  </form>
+
+  <p class="text-center mt-4" style="font-size:var(--text-sm);">Don't have an account? <a href="register.html">Register</a></p>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  if (new URLSearchParams(location.search).get('expired')) {
+    document.getElementById('expired-alert').classList.remove('d-none');
+  }
+  document.getElementById('toggle-password').addEventListener('click', () => {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const errorAlert = document.getElementById('error-alert');
+    errorAlert.classList.add('d-none');
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+
+    try {
+      const result = await Api.login({
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+      });
+      Auth.setTokens(result.access_token, result.refresh_token);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      errorAlert.textContent = err.message || 'Login failed. Please check your credentials.';
+      errorAlert.classList.remove('d-none');
+      btn.disabled = false;
+      btn.textContent = 'Log In';
+    }
+  });
+
+  // Already logged in? Skip straight to the dashboard.
+  if (Auth.isLoggedIn()) window.location.href = 'dashboard.html';
+</script>
+</body>
+</html>

@@ -10,7 +10,9 @@
 // file server on a different port), set window.NUTRIMAMA_API_BASE_URL to the
 // backend's full URL (e.g. 'http://127.0.0.1:8000') in a <script> tag BEFORE
 // this file loads, and add that origin to CORS_ORIGINS in the backend's .env.
-const API_BASE_URL = window.NUTRIMAMA_API_BASE_URL !== undefined ? window.NUTRIMAMA_API_BASE_URL : '';
+const API_BASE_URL = window.NUTRIMAMA_API_BASE_URL !== undefined
+  ? window.NUTRIMAMA_API_BASE_URL
+  : (location.hostname.endsWith('vercel.app') ? 'https://nutrimama-api.onrender.com' : '');
 
 const TOKEN_KEY = 'nutrimama_access_token';
 const REFRESH_KEY = 'nutrimama_refresh_token';

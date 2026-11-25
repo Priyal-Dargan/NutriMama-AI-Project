@@ -79,6 +79,7 @@ def _call_gemini(system_prompt: str, user_prompt: str, max_tokens: int,
 
     config = types.GenerateContentConfig(
         max_output_tokens=max_tokens,
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
 
     if response_format == "json":
@@ -90,7 +91,7 @@ def _call_gemini(system_prompt: str, user_prompt: str, max_tokens: int,
         config=config,
     )
 
-    return response.text
+    return response.text or ""
 
 
 def _call_openai(system_prompt: str, user_prompt: str, max_tokens: int,
